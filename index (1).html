@@ -1,0 +1,419 @@
+Acredito que tenha ocorrido um pequeno erro de digitação e você quis dizer **"enviar"** todos juntos (já que as teclas "V" e "N" ficam lado a lado no teclado). 
+
+Se for isso, criei uma atualização incrível para o aplicativo! Agora você pode:
+1. **Selecionar vários emojis ao mesmo tempo** (eles se acumulam, ex: 😃🔥💯).
+2. **Enviar tudo de uma vez** (emojis + texto) para o Android ou Telegram.
+3. **Gerar um QR Code automático**: Se você estiver criando a mensagem no computador, basta escanear a tela com o celular Android para receber o texto instantaneamente.
+
+Aqui está o código atualizado (basta salvar como `.html` e abrir):
+
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>App de Reações Multiplas</title>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #ffffff;
+            --accent-color: #0088cc;
+            --android-color: #3ddc84;
+            --highlight: #2c2c2c;
+            --danger: #ff4444;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 1.5rem;
+            text-align: center;
+        }
+
+        .subtitle {
+            color: #aaa;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Área dos Emojis */
+        .emoji-area {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .emoji-btn {
+            background: var(--highlight);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            font-size: 2rem;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            aspect-ratio: 1;
+        }
+
+        .emoji-btn:hover {
+            transform: scale(1.1);
+            background: #3a3a3a;
+        }
+
+        .emoji-btn.selected {
+            border-color: var(--accent-color);
+            background: #2a3a4a;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px rgba(0, 136, 204, 0.4);
+        }
+
+        .clear-btn {
+            grid-column: span 4;
+            background-color: rgba(255, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+            font-size: 1rem;
+            padding: 10px;
+            margin-top: 5px;
+        }
+        
+        .clear-btn:hover {
+            background-color: rgba(255, 68, 68, 0.3);
+            transform: scale(1.02);
+        }
+
+        /* Área de Mensagem e Preview */
+        .preview-area {
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            background-color: var(--card-bg);
+            border: 1px solid #333;
+            color: var(--text-color);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1rem;
+            resize: none;
+            height: 80px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: var(--accent-color);
+        }
+
+        .preview-box {
+            background-color: #252525;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 1.4rem;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-word;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        /* Área de Envio */
+        .send-area {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .send-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .send-btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-unified {
+            background: linear-gradient(135deg, var(--android-color), var(--accent-color));
+            color: #000;
+            font-size: 1.2rem;
+        }
+
+        .btn-telegram {
+            background-color: var(--accent-color);
+        }
+
+        /* QR Code Area */
+        .qr-area {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 12px;
+            display: none; /* Escondido por padrão */
+        }
+
+        .qr-area img {
+            max-width: 200px;
+            border-radius: 8px;
+        }
+
+        .qr-area p {
+            color: #000;
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        /* Notificação Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>⚡ Reações Múltiplas</h1>
+    <p class="subtitle">Toque nos emojis para acumulá-los</p>
+
+    <!-- ÁREA 1: Seleção de Emojis (Acumulativa) -->
+    <div class="emoji-area" id="emojiArea">
+        <button class="emoji-btn" data-emoji="😃">😃</button>
+        <button class="emoji-btn" data-emoji="👍🏻">👍🏻</button>
+        <button class="emoji-btn" data-emoji="🔥">🔥</button>
+        <button class="emoji-btn" data-emoji="💖">💖</button>
+        <button class="emoji-btn" data-emoji="💢">💢</button>
+        <button class="emoji-btn" data-emoji="💯">💯</button>
+        <button class="emoji-btn" data-emoji="👏🏻">👏🏻</button>
+        <button class="emoji-btn" data-emoji="🌟">🌟</button>
+        <button class="clear-btn" onclick="clearEmojis()">🗑️ Limpar Todos os Emojis</button>
+    </div>
+
+    <!-- ÁREA DE TEXTO E PREVIEW -->
+    <div class="preview-area">
+        <textarea id="messageInput" placeholder="Digite uma mensagem opcional..."></textarea>
+        <div class="preview-box" id="previewBox">
+            <span id="previewText" style="color: #666; font-size: 1rem;">Selecione emojis e digite algo...</span>
+        </div>
+    </div>
+
+    <!-- ÁREA 2: Envio Unificado -->
+    <div class="send-area">
+        <button class="send-btn btn-unified" onclick="sendUnified()">
+            🚀 Enviar Tudo Junto (Android/PC)
+        </button>
+        <button class="send-btn btn-telegram" onclick="sendToTelegram()">
+            ✈️ Enviar Direto para o Telegram
+        </button>
+    </div>
+
+    <!-- ÁREA DO QR CODE (Para enviar do PC para o Celular) -->
+    <div class="qr-area" id="qrArea">
+        <img id="qrImage" src="" alt="QR Code para Celular">
+        <p>📱 Escaneie com a câmera do seu Android</p>
+    </div>
+
+    <!-- Notificação -->
+    <div class="toast" id="toast">Mensagem copiada!</div>
+
+    <script>
+        let emojiSequence = '';
+        const emojiButtons = document.querySelectorAll('.emoji-btn:not(.clear-btn)');
+        const messageInput = document.getElementById('messageInput');
+        const previewText = document.getElementById('previewText');
+        const toast = document.getElementById('toast');
+        const qrArea = document.getElementById('qrArea');
+        const qrImage = document.getElementById('qrImage');
+
+        // Lógica de seleção ACUMULATIVA de Emojis
+        emojiButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const emoji = btn.getAttribute('data-emoji');
+                emojiSequence += emoji;
+                
+                // Efeito visual de clique
+                btn.classList.add('selected');
+                setTimeout(() => btn.classList.remove('selected'), 200);
+                
+                updatePreview();
+                hideQR(); // Esconde QR code ao alterar conteúdo
+            });
+        });
+
+        // Atualiza o preview quando o texto ou emoji muda
+        messageInput.addEventListener('input', () => {
+            updatePreview();
+            hideQR();
+        });
+
+        function updatePreview() {
+            const text = messageInput.value.trim();
+            if (emojiSequence && text) {
+                previewText.innerHTML = `${emojiSequence}<br>${text}`;
+                previewText.style.color = '#fff';
+            } else if (emojiSequence) {
+                previewText.innerHTML = emojiSequence;
+                previewText.style.color = '#fff';
+            } else if (text) {
+                previewText.innerHTML = text;
+                previewText.style.color = '#fff';
+            } else {
+                previewText.innerHTML = 'Selecione emojis e digite algo...';
+                previewText.style.color = '#666';
+            }
+        }
+
+        function clearEmojis() {
+            emojiSequence = '';
+            updatePreview();
+            hideQR();
+            showToast('🗑️ Emojis limpos!');
+        }
+
+        function getFinalText() {
+            const text = messageInput.value.trim();
+            if (emojiSequence && text) return `${emojiSequence}\n${text}`;
+            if (emojiSequence) return emojiSequence;
+            return text;
+        }
+
+        // Função Unificada Inteligente
+        function sendUnified() {
+            const text = getFinalText();
+            if (!text) {
+                showToast('⚠️ Selecione um emoji ou digite algo!');
+                return;
+            }
+
+            // Se estiver no celular (Android/iOS), usa o compartilhamento nativo
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Minha Reação',
+                    text: text
+                }).then(() => {
+                    showToast('✅ Enviado com sucesso!');
+                }).catch((err) => {
+                    console.log('Compartilhamento cancelado', err);
+                });
+            } else {
+                // Se estiver no PC, gera um QR Code para o celular ler
+                generateQRCode(text);
+                showToast('📱 QR Code gerado! Aponte a câmera do celular.');
+            }
+        }
+
+        // Enviar especificamente para o Telegram
+        function sendToTelegram() {
+            const text = getFinalText();
+            if (!text) {
+                showToast('⚠️ Selecione um emoji ou digite algo!');
+                return;
+            }
+            
+            const encodedText = encodeURIComponent(text);
+            const telegramUrl = `https://t.me/share/url?url=&text=${encodedText}`;
+            window.open(telegramUrl, '_blank');
+        }
+
+        // Gerar QR Code (API pública e segura)
+        function generateQRCode(text) {
+            const encodedText = encodeURIComponent(text);
+            // Usa a API do qrserver para gerar a imagem dinamicamente
+            qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodedText}`;
+            qrArea.style.display = 'block';
+            
+            // Rola a tela até o QR Code em dispositivos móveis
+            qrArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function hideQR() {
+            qrArea.style.display = 'none';
+        }
+
+        // Função auxiliar para notificações
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
+```
+
+### 🌟 O que mudou e como resolve seu problema:
+
+1. **Acúmulo de Emojis:** Agora, ao clicar em `😃` e depois em `🔥`, o resultado será `😃🔥`. Você pode montar combinações antes de enviar.
+2. **Botão "Enviar Tudo Junto" Inteligente:**
+   - **No Celular Android:** Ele abre o menu nativo de compartilhamento do Android, permitindo enviar o pacote completo (emojis + texto) para qualquer app (WhatsApp, SMS, Notas, etc).
+   - **No Computador:** Como não há como "enviar" direto do PC para o celular sem um app, ele **gera um QR Code automaticamente**. Basta abrir a câmera do seu celular Android, apontar para a tela do PC e o texto com os emojis aparecerá pronto para ser copiado ou enviado.
+3. **Botão de Limpar:** Adicionado para resetar a sequência de emojis caso você queira começar uma nova combinação.
+
+*(Caso você realmente quisesse dizer "evitar" no sentido de bloquear ou impedir o envio, por favor me avise que ajusto a lógica para criar um filtro de bloqueio!)*
